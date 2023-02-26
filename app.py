@@ -1,34 +1,65 @@
-import openai
+import asyncio
+import datetime
 
-from config import OPENAI_API_KEY, model_engine
+from telethon import TelegramClient, events
 
+from config import *
+from functions.main import get_unique_post
 
-br = '\n'
-data_txt_path = 'txt/'
-
-
-post = open(f'{data_txt_path}post.txt', 'r', encoding='UTF-8').read()
-prompt_text = open(f'{data_txt_path}prompt.txt', 'r', encoding='UTF-8').read()
-prompt = f"{prompt_text}{br*2}Текст поста:{br}{post}"
+from telethon.tl.types import Document
 
 
-openai.api_key = OPENAI_API_KEY
-completion = openai.Completion.create(
-    engine=model_engine,
-    prompt=prompt,
-    max_tokens=int(len(post) * 2),
-    temperature=0.5,
-    top_p=1,
-    frequency_penalty=0,
-    presence_penalty=0
-)
 
-answer = completion.choices[0].text.strip()
-with open(f'{data_txt_path}answer.txt', 'w', encoding='UTF-8') as answer_file:
-    answer_file.write(f'ㅤ{br}' + answer + f'{br}ㅤ')
 
-print(answer)
 
+
+
+
+client = TelegramClient('sessions/my_session', TELETHON_API_ID, TELETHON_API_HASH)
+
+
+async def main():
+    await client.start()
+    for chat in await client.get_dialogs():
+
+        if chat.id == -1001434827238:
+            break
+
+    messages = await client.get_messages(chat, limit=20)
+
+
+    for message in messages[::-1]:
+        try:
+            media = message.document
+            if media:
+
+                today = datetime.datetime.today()
+                new_date = today + datetime.timedelta(days=30)
+                
+                # post = get_unique_post(prompt + f"""{br*2}Текст поста:{br}"{message.message.split('Real Food |')[0]}"{br}""")
+
+
+                post = message.message.split('Real Food |')[0]
+                media2 = Document(
+                    id=message.video.id,
+                    access_hash = message.video.access_hash,
+                    file_reference = message.video.file_reference,
+                    mime_type = message.video.mime_type,
+                    date = None,
+                    size = None,
+                    dc_id = None,
+                    attributes = None,
+                    thumbs = None,
+                    video_thumbs = None,
+                )
+
+                await client.send_file(-1001866949700, file=media2, caption=f'ㅤ{br}{post}{br}ㅤ', schedule=new_date )
+
+                print(post)
+        except Exception as ex:
+            print(ex)
+
+asyncio.run(main())
 
 
 
