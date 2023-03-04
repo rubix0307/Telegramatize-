@@ -12,6 +12,10 @@ TELETHON_API_HASH = os.environ['TELETHON_API_HASH']
 TELETHON_PHONE = os.environ['TELETHON_PHONE']
 
 
+BOT_TOKEN = os.environ['BOT_TOKEN']
+
+DB_USER = os.environ['DB_USER']
+DB_PASSWORD = os.environ['DB_PASSWORD']
 
 post = open(f'txt/post.txt', 'r', encoding='UTF-8').read()
 prompt = open(f'txt/prompt.txt', 'r', encoding='UTF-8').read()
@@ -19,5 +23,7 @@ prompt = open(f'txt/prompt.txt', 'r', encoding='UTF-8').read()
 max_tokens = int(len(post) * 2)
 
 
+
+global_data = {}
 
 

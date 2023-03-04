@@ -1,68 +1,36 @@
-import asyncio
-import datetime
+import time
 
-from telethon import TelegramClient, events
+from aiogram import Bot
+from aiogram.contrib.fsm_storage.memory import MemoryStorage
+from aiogram.dispatcher import Dispatcher
+from aiogram.utils.exceptions import NetworkError
+from telethon import TelegramClient
 
-from config import *
-from functions.main import get_unique_post
-
-from telethon.tl.types import Document
-
-
+from config import BOT_TOKEN, TELETHON_API_HASH, TELETHON_API_ID, global_data
 
 
 
+bot = Bot(token=BOT_TOKEN)
+dp = Dispatcher(bot)
 
 
 
-client = TelegramClient('sessions/my_session', TELETHON_API_ID, TELETHON_API_HASH)
+if __name__ == '__main__':
 
+    from aiogram import executor
+    from handlers import dp
 
-async def main():
-    await client.start()
-    for chat in await client.get_dialogs():
+    async def on_startup(dp):
+        client = TelegramClient('sessions/my_session1', TELETHON_API_ID, TELETHON_API_HASH)
+        await client.start()
+        global_data.update(
+            {'client': client}
+        )
+        print('✅ Bot is run')
 
-        if chat.id == -1001434827238:
-            break
-
-    messages = await client.get_messages(chat, limit=20)
-
-
-    for message in messages[::-1]:
+    while 1:
         try:
-            media = message.document
-            if media:
-
-                today = datetime.datetime.today()
-                new_date = today + datetime.timedelta(days=30)
-                
-                # post = get_unique_post(prompt + f"""{br*2}Текст поста:{br}"{message.message.split('Real Food |')[0]}"{br}""")
-
-
-                post = message.message.split('Real Food |')[0]
-                media2 = Document(
-                    id=message.video.id,
-                    access_hash = message.video.access_hash,
-                    file_reference = message.video.file_reference,
-                    mime_type = message.video.mime_type,
-                    date = None,
-                    size = None,
-                    dc_id = None,
-                    attributes = None,
-                    thumbs = None,
-                    video_thumbs = None,
-                )
-
-                await client.send_file(-1001866949700, file=media2, caption=f'ㅤ{br}{post}{br}ㅤ', schedule=new_date )
-
-                print(post)
-        except Exception as ex:
-            print(ex)
-
-asyncio.run(main())
-
-
-
-
-
-
+            executor.start_polling(dp, on_startup=on_startup)
+        except NetworkError:
+            print(f'reconecting')
+            time.sleep(1)
